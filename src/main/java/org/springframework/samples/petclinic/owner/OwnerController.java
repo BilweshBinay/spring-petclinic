@@ -95,13 +95,13 @@ class OwnerController {
 	public String processFindForm(@RequestParam(defaultValue = "1") int page, Owner owner, BindingResult result,
 			Model model) {
 		// allow parameterless GET request for /owners to return all records
-		String lastName = owner.getLastName();
-		if (lastName == null) {
-			lastName = ""; // empty string signifies broadest possible search
+		String keyword = owner.getLastName();
+		if (keyword == null) {
+			keyword = ""; // empty string signifies broadest possible search
 		}
 
 		// find owners by last name
-		Page<Owner> ownersResults = findPaginatedForOwnersLastName(page, lastName);
+		Page<Owner> ownersResults = findPaginatedForOwnersName(page, keyword);
 		if (ownersResults.isEmpty()) {
 			// no owners found
 			result.rejectValue("lastName", "notFound", "not found");
@@ -127,16 +127,10 @@ class OwnerController {
 		return "owners/ownersList";
 	}
 
-	private Page<Owner> findPaginatedForOwnersLastName(int page, String lastname) {
+	private Page<Owner> findPaginatedForOwnersName(int page, String keyword) {
 		int pageSize = 5;
 		Pageable pageable = PageRequest.of(page - 1, pageSize);
-		return owners.findByLastNameStartingWith(lastname, pageable);
-	}
-
-	private Page<Owner> findPaginatedForOwnersFirstName(int page, String firstname) {
-		int pageSize = 5;
-		Pageable pageable = PageRequest.of(page - 1, pageSize);
-		return owners.findByFirstNameStartingWith(firstname, pageable);
+		return owners.findByFirstNameStartingWithOrLastNameStartingWith(keyword, keyword, pageable);
 	}
 
 	@GetMapping("/owners/{ownerId}/edit")
