@@ -26,12 +26,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.InitBinder;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 
@@ -69,6 +64,11 @@ class PetController {
 		Owner owner = optionalOwner.orElseThrow(() -> new IllegalArgumentException(
 				"Owner not found with id: " + ownerId + ". Please ensure the ID is correct "));
 		return owner;
+//		return this.owners.findById(ownerId).orElseGet(() -> {
+//			Owner owner = new Owner();
+//			owner.setId(ownerId);
+//			return owner;
+//		});
 	}
 
 	@ModelAttribute("pet")
@@ -103,7 +103,7 @@ class PetController {
 	}
 
 	@PostMapping("/pets/new")
-	public String processCreationForm(Owner owner, @Valid Pet pet, BindingResult result,
+	public String processCreationForm(Owner owner, @Valid Pet pet, BindingResult result, @RequestParam String typeName,
 			RedirectAttributes redirectAttributes) {
 
 		if (StringUtils.hasText(pet.getName()) && pet.isNew() && owner.getPet(pet.getName(), true) != null) {
@@ -118,6 +118,16 @@ class PetController {
 		if (result.hasErrors()) {
 			return VIEWS_PETS_CREATE_OR_UPDATE_FORM;
 		}
+
+		PetType existingType = this.types.findByNameIgnoreCase(typeName);
+
+		if (existingType == null) {
+			existingType = new PetType();
+			existingType.setName(typeName);
+			this.types.save(existingType);
+		}
+
+		pet.setType(existingType);
 
 		owner.addPet(pet);
 		this.owners.save(owner);
