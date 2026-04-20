@@ -130,7 +130,7 @@ class OwnerController {
 	private Page<Owner> findPaginatedForOwnersName(int page, String keyword) {
 		int pageSize = 5;
 		Pageable pageable = PageRequest.of(page - 1, pageSize);
-		return owners.findByFirstNameStartingWithOrLastNameStartingWith(keyword, keyword, pageable);
+		return owners.findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCase(keyword, keyword, pageable);
 	}
 
 	@GetMapping("/owners/{ownerId}/edit")
