@@ -103,35 +103,45 @@ class PetController {
 	}
 
 	@PostMapping("/pets/new")
-	public String processCreationForm(Owner owner, @Valid Pet pet, BindingResult result, @RequestParam String typeName,
-			RedirectAttributes redirectAttributes) {
+	public String processCreationForm(Owner owner, Pet pet, BindingResult result, @RequestParam String typeName,
+		RedirectAttributes redirectAttributes) {
 
 		if (StringUtils.hasText(pet.getName()) && pet.isNew() && owner.getPet(pet.getName(), true) != null) {
 			result.rejectValue("name", "duplicate", "already exists");
 		}
 
 		LocalDate currentDate = LocalDate.now();
+
 		if (pet.getBirthDate() != null && pet.getBirthDate().isAfter(currentDate)) {
 			result.rejectValue("birthDate", "typeMismatch.birthDate");
+		}
+
+		if (typeName == null || typeName.isBlank()) {
+			result.rejectValue("type", "required", "is required");
+		} else {
+
+			PetType existingType = this.types.findByNameIgnoreCase(typeName);
+
+			if (existingType == null) {
+				existingType = new PetType();
+				existingType.setName(typeName);
+				this.types.save(existingType);
+			}
+
+			pet.setType(existingType);
 		}
 
 		if (result.hasErrors()) {
 			return VIEWS_PETS_CREATE_OR_UPDATE_FORM;
 		}
 
-		PetType existingType = this.types.findByNameIgnoreCase(typeName);
-
-		if (existingType == null) {
-			existingType = new PetType();
-			existingType.setName(typeName);
-			this.types.save(existingType);
-		}
-
-		pet.setType(existingType);
-
 		owner.addPet(pet);
 		this.owners.save(owner);
-		redirectAttributes.addFlashAttribute("message", "New Pet has been Added");
+
+		redirectAttributes.addFlashAttribute(
+			"message",
+			"New Pet has been Added");
+
 		return "redirect:/owners/{ownerId}";
 	}
 

@@ -15,7 +15,7 @@
 <!--          </select>-->
           <input class="form-control" list="petTypeList" name="typeName" placeholder="Select or type pet type"/>
           <datalist id="petTypeList">
-            <option th:each="item : ${items}" th:value="${item}" th:text="${item}"></option>
+            <option th:each="item : ${items}" th:value="${item.name}" th:text="${item.name}"></option>
           </datalist>
           <span th:if="${valid}" class="fa fa-ok form-control-feedback" aria-hidden="true"></span>
           <th:block th:if="${!valid}">
